@@ -66,13 +66,16 @@ class Frame:
 
 class Shot:
     def __init__(self, num_video, num_shot, frames:list[Frame], is_included_in_final_summary:bool=None, i3d_features=None,mmr_sum=None):
-        self.num_video = num_video
-        self.num_shot = num_shot
+        self.num_video = int(num_video)
+        self.num_shot = int(num_shot)
         self.frames = frames
         self.is_included_in_final_summary = is_included_in_final_summary
         self.i3d_features = i3d_features
         self.mmr_sum = mmr_sum
-   
+    
+    def get_features(self):
+        return [frame.features for frame in self.frames]
+
     def mmr_sum_value(self):  # Give me accuracy => 45.45 , labda = 0.7
         shot_mmr_sum_score = 0
         for frame in self.frames:
