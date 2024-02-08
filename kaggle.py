@@ -231,11 +231,16 @@ def extract_shots_from_frames_with_exist_segmentation(video_segment, video_frame
 def summarize_video_by_golden_summary_color(video_path,video_segmentation,video_golden_summary):
     video_size = (224, 224)
     video_frames = video_to_frames(video_path, video_size)
+
     extracted_shots = extract_shots_from_frames_with_exist_segmentation(video_segmentation, video_frames)
+    
     shots_choosed_with_golden_summary=[]
+
     for golden_shot_index in video_golden_summary:
         shots_choosed_with_golden_summary.append((golden_shot_index,extracted_shots[golden_shot_index-1]))
+    
     frames_features_vector_for_extracted_shots=[]
+    
     for shot_index,shot_frames in shots_choosed_with_golden_summary:
         frame_feature_color = [(frame,None)for frame in shot_frames]
         frames_features_vector_for_extracted_shots.append((shot_index,frame_feature_color))    
@@ -248,9 +253,6 @@ def extract_color_videos_frames_features_final(area_name):
     print(f"Extract segmented videos from dataset of area {area_name}")
     area_videos = []
     for video in tour20_videos_output[area_name]:
-        # print()
-        # print(video['video_name'][0:3])
-        # print()
 
         video_path           = video['video_path']
         video_segmentation   = tour20_segments_output[area_name][video['video_name'][0:3]]

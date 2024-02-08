@@ -2,6 +2,8 @@ from tools.files_tools import upload_pickle_object
 from Objects import Tour20Vidoes,Shot
 from collections import defaultdict
 from sklearn.metrics.pairwise import cosine_similarity
+import matplotlib.pyplot as plt
+import math
 
 def compine_two_list_of_tuples(list1,list2):
     result = []
@@ -9,19 +11,19 @@ def compine_two_list_of_tuples(list1,list2):
         result.append((i1,i2))
     return result
 
-def calc_golden_summary(all_shots:list[Shot],area_name):
+def retreive_users_summaires_from_tour20_dataset(all_shots:list[Shot],area_name):
 
-    userSummaries_output = upload_pickle_object("metrics/tour20_userSummaries_output")
+    tour20_userSummaries = upload_pickle_object("metrics/tour20_userSummaries_output")
     
-    user1_gt        = userSummaries_output['User1'][area_name]['GT']
-    user1_gt_index  = userSummaries_output['User1'][area_name]['GT-video-index']
+    user1_gt        = tour20_userSummaries['User1'][area_name]['GT']
+    user1_gt_index  = tour20_userSummaries['User1'][area_name]['GT-video-index']
     
 
-    user2_gt        = userSummaries_output['User2'][area_name]['GT']
-    user2_gt_index  = userSummaries_output['User2'][area_name]['GT-video-index']
+    user2_gt        = tour20_userSummaries['User2'][area_name]['GT']
+    user2_gt_index  = tour20_userSummaries['User2'][area_name]['GT-video-index']
 
-    user3_gt        = userSummaries_output['User3'][area_name]['GT']
-    user3_gt_index  = userSummaries_output['User3'][area_name]['GT-video-index']
+    user3_gt        = tour20_userSummaries['User3'][area_name]['GT']
+    user3_gt_index  = tour20_userSummaries['User3'][area_name]['GT-video-index']
     
     user1_summary = compine_two_list_of_tuples(user1_gt_index,user1_gt)
     user1_summary_shots:list[Shot] = []
@@ -41,21 +43,51 @@ def calc_golden_summary(all_shots:list[Shot],area_name):
         if (shot.num_video, shot.num_shot) in user3_summary:
             user3_summary_shots.append(shot)
 
+    # num_images = len(user1_summary_shots)
+    # rows = math.ceil(num_images / 5)
+    # plt.figure(figsize=(25, 5 * rows))
+    # for i, shot in enumerate(user1_summary_shots):
+    #     if i % 5 == 0:
+    #         plt.figure(figsize=(25, 5))  # Set the figure size for each row of images
+    #     plt.subplot(1, 5, i % 5 + 1)  # Subplot indices start at 1, not 0
+    #     plt.imshow(shot.frames[0].frame, cmap='gray')
+    #     plt.axis('off')
+    #     if (i + 1) % 5 == 0 or i == len(user1_summary_shots) - 1:
+    #         plt.subplots_adjust(wspace=0.2, hspace=0.2)
+    #         plt.show()
+    # plt.subplots_adjust(wspace=0.2, hspace=0.2)
+    # plt.show()
 
     y_true = list(set(user1_summary + user2_summary + user3_summary))
     return y_true,user1_summary_shots, user2_summary_shots, user3_summary_shots
 
-def calc_precision_recall_f1_accuracy(all_shots, area_name, shots_pred:list[Shot], test_name): 
-    print(area_name)   
-    y_true,user1_summary_shots, user2_summary_shots, user3_summary_shots = calc_golden_summary(all_shots ,area_name)
+
+
+def print_evaluation_result(all_shots, area_name, shots_pred:list[Shot], test_name): 
+
+    y_true,user1_summary_shots, user2_summary_shots, user3_summary_shots = retreive_users_summaires_from_tour20_dataset(all_shots ,area_name)
     
+    #### plot user1_summary_shots as images (plot first image in each shot)
+
+    # num_images = len(shots_pred[:len(user1_summary_shots)])
+    # rows = math.ceil(num_images / 5)
+    # plt.figure(figsize=(25, 5 * rows))
+    # for i, shot in enumerate(shots_pred[:len(user1_summary_shots)]):
+    #     if i % 5 == 0:
+    #         plt.figure(figsize=(25, 5))  # Set the figure size for each row of images
+    #     plt.subplot(1, 5, i % 5 + 1)  # Subplot indices start at 1, not 0
+    #     plt.imshow(shot.frames[0].frame, cmap='gray')
+    #     plt.axis('off')
+    #     if (i + 1) % 5 == 0 or i == num_images - 1:
+    #         plt.subplots_adjust(wspace=0.2, hspace=0.2)
+    #         plt.show()
+    # plt.subplots_adjust(wspace=0.2, hspace=0.2)
+    # plt.show()
 
     precision_user1,recall_user1,f1_user1,accuracy_user1 = evaluate_predictions(shots_pred[:len(user1_summary_shots)],user1_summary_shots)
     precision_user2,recall_user2,f1_user2,accuracy_user2 = evaluate_predictions(shots_pred[:len(user2_summary_shots)],user2_summary_shots)
     precision_user3,recall_user3,f1_user3,accuracy_user3 = evaluate_predictions(shots_pred[:len(user3_summary_shots)],user3_summary_shots)
 
-
-    # print(f'|| Golden Summary({test_name})\n|| \t\t\t\t{len(choosen_shots)}\t\t{precision*100:.2f}\t\t{recall*100:.2f}\t\t{f1*100:.2f}\t\t{accuracy*100:.2f}')
     print(f'|| \t\t\t\t_____________________________________________________________________')
     print( '|| ')
     print(f'|| user1\t\t\t{len(user1_summary_shots)}\t\t{precision_user1*100:.2f}\t\t{recall_user1*100:.2f}\t\t{f1_user1*100:.2f}\t\t{accuracy_user1*100:.2f}')
