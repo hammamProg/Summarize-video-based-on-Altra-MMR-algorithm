@@ -79,7 +79,8 @@ def calculate_shot_mmr(video_index, shot_index, videos:list[Video], all_frames:l
     for i, frame in enumerate(videos[video_index].shots[shot_index].frames):
         similarity = calculate_similarities(frame.features, other_shot_frames, 'AM')
         max_sim2 = np.max(sim2(frame.features, current_shot_frames))
-        shot_out[i] = lmda * similarity - (1 - lmda) * max_sim2
+        # shot_out[i] = lmda * similarity - (1 - lmda) * max_sim2
+        shot_out[i] = similarity
 
     return video_index, shot_index, np.sum(shot_out)
 
@@ -115,3 +116,8 @@ def calculate_video_mmr(videos: list[Video], lmda) -> None:
     # Update the mmr_sum for each shot with the results from multiprocessing
     for video_index, shot_index, mmr_sum in results:
         videos[video_index].shots[shot_index].mmr_sum = mmr_sum
+
+
+
+
+

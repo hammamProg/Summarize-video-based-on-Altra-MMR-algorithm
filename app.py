@@ -1,7 +1,7 @@
 from Objects import Frame, Shot, Video, Tour20Vidoes, FeaturesType, AverageSimilarityMeasure, ShotValueRepresentation
 from tools.files_tools import download_object_as_pickle, upload_pickle_object
 from metrics.calc_metrics import print_evaluation_result, retreive_users_summaires_from_tour20_dataset
-from enhanced_mmr import calculate_video_mmr
+from intra_shot_mmr import calculate_video_mmr
 from cv_tools import extract_histogram_features, frames_to_video
 from kaggle import extract_color_videos_frames_features_final
 import numpy as np
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     all_areas_names = Tour20Vidoes.list_name()
     # all_areas_names =all_areas_names[2:]
-    # all_areas_names =[Tour20Vidoes.AT.name]
+    all_areas_names =[Tour20Vidoes.AT.name]
 
     for area_name in all_areas_names:
         try:
@@ -46,14 +46,14 @@ if __name__ == '__main__':
                     area_videos = extract_color_videos_frames_features_final(area_name)
                     video_objects:list[Video] = fill_classes_with_area_videos(area_videos)
                     
-                    lambda_value = 0.4
+                    lambda_value = 0.5
                     
                     print(f"\nApplying MMR(lambda = {lambda_value}) for all frames in the videos :) ......\n")
 
                     calculate_video_mmr(video_objects,lambda_value)
             
-            # download_object_as_pickle(f'{area_name}_video_objects',video_objects)
-            # video_objects = upload_pickle_object(f'{area_name}_video_objects')
+            download_object_as_pickle(f'{area_name}_video_objects',video_objects)
+            video_objects = upload_pickle_object(f'{area_name}_video_objects')
             
 
             feature_type = FeaturesType.HSV.value

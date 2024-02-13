@@ -50,9 +50,11 @@ def retreive_users_summaires_from_tour20_dataset(all_shots:list[Shot],area_name)
     #     if i % 5 == 0:
     #         plt.figure(figsize=(25, 5))  # Set the figure size for each row of images
     #     plt.subplot(1, 5, i % 5 + 1)  # Subplot indices start at 1, not 0
-    #     plt.imshow(shot.frames[0].frame, cmap='gray')
+    #     mid_frame_index = len(shot.frames) // 2
+
+    #     plt.imshow(shot.frames[mid_frame_index].frame, cmap='gray')
     #     plt.axis('off')
-    #     if (i + 1) % 5 == 0 or i == len(user1_summary_shots) - 1:
+    #     if (i + 1) % 5 == 0 or i == num_images - 1:
     #         plt.subplots_adjust(wspace=0.2, hspace=0.2)
     #         plt.show()
     # plt.subplots_adjust(wspace=0.2, hspace=0.2)
@@ -68,15 +70,19 @@ def print_evaluation_result(all_shots, area_name, shots_pred:list[Shot], test_na
     y_true,user1_summary_shots, user2_summary_shots, user3_summary_shots = retreive_users_summaires_from_tour20_dataset(all_shots ,area_name)
     
     #### plot user1_summary_shots as images (plot first image in each shot)
-
+    
     # num_images = len(shots_pred[:len(user1_summary_shots)])
+    # print(f"num_images = {num_images}")
     # rows = math.ceil(num_images / 5)
     # plt.figure(figsize=(25, 5 * rows))
-    # for i, shot in enumerate(shots_pred[:len(user1_summary_shots)]):
+    # for i, shot in enumerate(shots_pred[:num_images]):
     #     if i % 5 == 0:
     #         plt.figure(figsize=(25, 5))  # Set the figure size for each row of images
     #     plt.subplot(1, 5, i % 5 + 1)  # Subplot indices start at 1, not 0
-    #     plt.imshow(shot.frames[0].frame, cmap='gray')
+    #     # calc mid frame
+    #     mid_frame_index = len(shot.frames) // 2
+
+    #     plt.imshow(shot.frames[mid_frame_index].frame, cmap='gray')
     #     plt.axis('off')
     #     if (i + 1) % 5 == 0 or i == num_images - 1:
     #         plt.subplots_adjust(wspace=0.2, hspace=0.2)
@@ -102,8 +108,8 @@ def evaluate_predictions(shots_pred:list[Shot], user_summary_shots:list[Shot]):
     true_negative = 0
 
     for shot_pred in shots_pred:
-        shot_features = shot_pred.get_features()
         
+        shot_features = shot_pred.get_features()
         flag_found = False
         for user_shot in user_summary_shots:
             similarity = cosine_similarity(shot_features, user_shot.get_features())[0][0]
@@ -113,7 +119,41 @@ def evaluate_predictions(shots_pred:list[Shot], user_summary_shots:list[Shot]):
                 break
         if not flag_found:
             false_positive += 1
-        
+    
+    for user_shot in user_summary_shots:
+        flag_found = False
+        for shot_pred in shots_pred:
+            
+
+            similarity = cosine_similarity(shot_pred.get_features(), user_shot.get_features())[0][0]
+            ### plot the first frame of the user_shot vs the first frame of the shot_pred in one figure, with the similarity value as seprated label, add label for each figure
+            # plt.figure()
+            # plt.subplot(1, 2, 1)
+            # mid_frame_index = len(shot_pred.frames) // 2
+            # plt.imshow(shot_pred.frames[mid_frame_index].frame, cmap='gray')
+            # plt.title(f'Pred Similarity = {similarity:.2f}')
+            # plt.axis('off')
+            # plt.subplot(1, 2, 2)
+            # mid_frame_index = len(user_shot.frames) // 2
+            # plt.imshow(user_shot.frames[mid_frame_index].frame, cmap='gray')
+            # plt.title(f'User summary')
+            # plt.axis('off')
+            # plt.show()
+
+            if similarity > 0.8:
+                true_positive += 1
+                ### plot the taken shot and print the similarity value
+                # plt.figure()
+                # plt.imshow(shot_pred.frames[0].frame, cmap='gray')
+                # plt.title(f'Similarity = {similarity:.2f}')
+                # plt.axis('off')
+                # plt.show()
+
+                flag_found = True
+                break
+        if not flag_found:
+            false_negative += 1
+
     false_negative = len(user_summary_shots) - true_positive
 
     precision = true_positive / (true_positive + false_positive)
